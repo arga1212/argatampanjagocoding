@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #fff;
+            margin: 10px 0;
+            padding: 15px;
+            border-left: 5px solid #007bff;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+
+        .recommendation {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e9ffe9;
+            border-left: 5px solid #28a745;
+        }
+
+        .back-button {
+            margin-top: 20px;
+            display: inline-block;
+            text-decoration: none;
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Feedback untuk Quiz</h1>
+
+    <ul>
+        {% for item in feedback %}
+            <li>{{ item }}</li>
+        {% endfor %}
+    </ul>
+
+    {% if kategori_terbanyak %}
+        <div class="recommendation">
+            <h3>Rekomendasi Belajar untuk Taksonomi Bloom {{ kategori_terbanyak }}:</h3>
+            <p>{{ rekomendasi }}</p>
+        </div>
+    {% endif %}
+
+    <a href="/" class="back-button">Kembali ke Beranda</a>
+</body>
+</html>

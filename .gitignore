@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# Flask
+instance/
+.webassets-cache
+*.log
+*.pot
+
+# Virtualenv
+venv/
+ENV/
+env/
+
+# Temp files
+*.swp
+.DS_Store
+*.bak
+
+# IDE
+.vscode/
+.idea/
+*.iml

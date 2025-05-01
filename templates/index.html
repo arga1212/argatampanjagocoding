@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pembuat Soal Otomatis</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
+    <style>
+        .header-section {
+            background: linear-gradient(135deg, #1e5799 0%, #207cca 100%);
+            color: white;
+            padding: 2rem 0;
+            border-radius: 0 0 20px 20px;
+            margin-bottom: 2rem;
+        }
+        .form-section {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        .result-section {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        .question-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .taxonomy-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .alert-section {
+            margin-bottom: 1rem;
+        }
+        .choice-item {
+            margin-bottom: 0.5rem;
+        }
+        .correct-answer {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+            padding: 0.75rem;
+            border-radius: 5px;
+            margin-top: 0.5rem;
+        }
+        .explanation-section {
+            background-color: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 5px;
+            margin-top: 0.5rem;
+        }
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="container text-center">
+            <h1><i class="fas fa-graduation-cap me-2"></i> Aplikasi Pembuat Soal Otomatis</h1>
+            <p class="lead">Buat soal pilihan ganda dengan taksonomi Bloom dari modul pembelajaran Anda</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Alert Section -->
+        <div id="alertSection" class="alert-section d-none">
+            <div id="alertMessage" class="alert" role="alert"></div>
+        </div>
+
+        <!-- Form Section -->
+        <div class="form-section">
+            <h2 class="mb-4"><i class="fas fa-pencil-alt me-2"></i> Input Modul Pembelajaran</h2>
+            
+            <form id="questionForm">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Pilih Metode Input:</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="inputType" id="textInput" value="text" checked>
+                        <label class="form-check-label" for="textInput">
+                            Input Teks Langsung
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="inputType" id="fileInput" value="file">
+                        <label class="form-check-label" for="fileInput">
+                            Upload File (PDF, TXT, MD, HTML)
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Text Input Area -->
+                <div id="textInputSection" class="mb-3">
+                    <label for="modulText" class="form-label">Masukkan Teks Modul Pembelajaran:</label>
+                    <textarea class="form-control" id="modulText" name="modulText" rows="8" placeholder="Tempel atau ketik teks modul pembelajaran di sini..."></textarea>
+                </div>
+
+                <!-- File Upload Area -->
+                <div id="fileInputSection" class="mb-3 d-none">
+                    <label for="modulFile" class="form-label">Upload File Modul:</label>
+                    <input class="form-control" type="file" id="modulFile" name="modulFile" accept=".pdf,.txt,.md,.html,.htm">
+                    <div class="form-text">Format yang didukung: PDF, TXT, MD, HTML</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="jumlahSoal" class="form-label">Jumlah Soal:</label>
+                    <input type="number" class="form-control" id="jumlahSoal" name="jumlahSoal" min="1" max="50" value="10">
+                    <div class="form-text">Masukkan jumlah soal yang diinginkan (1-50)</div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg" id="generateButton">
+                        <i class="fas fa-cogs me-2"></i> Buat Soal
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="loading-spinner">
+            <div class="d-flex justify-content-center">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            <p class="mt-3 lead text-center">Sedang membuat soal... Harap tunggu (Proses ini bisa memakan waktu 1-2 menit)</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultSection" class="result-section d-none">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-list-ol me-2"></i> Hasil Soal</h2>
+                <button id="downloadButton" class="btn btn-success">
+                    <i class="fas fa-download me-2"></i> Unduh Soal (JSON)
+                </button>
+            </div>
+            
+            <!-- Taxonomy Distribution -->
+            <div class="mb-4">
+                <h5>Distribusi Taksonomi Bloom:</h5>
+                <div class="progress" style="height: 30px;">
+                    <div id="c1Bar" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">C1: 0%</div>
+                    <div id="c2Bar" class="progress-bar bg-info" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">C2: 0%</div>
+                    <div id="c3Bar" class="progress-bar bg-primary" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">C3: 0%</div>
+                    <div id="c4Bar" class="progress-bar bg-warning" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">C4: 0%</div>
+                    <div id="c5Bar" class="progress-bar bg-danger" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">C5: 0%</div>
+                    <div id="c6Bar" class="progress-bar bg-dark" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">C6: 0%</div>
+                </div>
+                <div class="d-flex justify-content-between mt-2 small">
+                    <span><span class="badge bg-success">C1</span> Mengingat</span>
+                    <span><span class="badge bg-info">C2</span> Memahami</span>
+                    <span><span class="badge bg-primary">C3</span> Menerapkan</span>
+                    <span><span class="badge bg-warning">C4</span> Menganalisis</span>
+                    <span><span class="badge bg-danger">C5</span> Mengevaluasi</span>
+                    <span><span class="badge bg-dark">C6</span> Mencipta</span>
+                </div>
+            </div>
+            
+            <!-- Questions List -->
+            <div id="questionsList"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-5">
+        <div class="container">
+            <p>© 2025 Aplikasi Pembuat Soal Otomatis dengan AI</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle between input methods
+            document.querySelectorAll('input[name="inputType"]').forEach(input => {
+                input.addEventListener('change', function() {
+                    if (this.value === 'text') {
+                        document.getElementById('textInputSection').classList.remove('d-none');
+                        document.getElementById('fileInputSection').classList.add('d-none');
+                    } else {
+                        document.getElementById('textInputSection').classList.add('d-none');
+                        document.getElementById('fileInputSection').classList.remove('d-none');
+                    }
+                });
+            });
+
+            // Form submission
+            document.getElementById('questionForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Show loading spinner
+                document.getElementById('loadingSpinner').style.display = 'block';
+                document.getElementById('resultSection').classList.add('d-none');
+                document.getElementById('alertSection').classList.add('d-none');
+                
+                // Get form data
+                const formData = new FormData(this);
+                
+                // Send request to generate questions
+                fetch('/generate', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading spinner
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                    
+                    if (data.error) {
+                        // Show error message
+                        document.getElementById('alertSection').classList.remove('d-none');
+                        const alertMessage = document.getElementById('alertMessage');
+                        alertMessage.textContent = data.error;
+                        alertMessage.className = 'alert alert-danger';
+                        return;
+                    }
+                    
+                    // Store result data for download
+                    window.resultData = data;
+                    
+                    // Display results
+                    renderResults(data);
+                    
+                    // Show result section
+                    document.getElementById('resultSection').classList.remove('d-none');
+                    
+                    // Scroll to results
+                    document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+                })
+                .catch(error => {
+                    // Hide loading spinner
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                    
+                    // Show error message
+                    document.getElementById('alertSection').classList.remove('d-none');
+                    const alertMessage = document.getElementById('alertMessage');
+                    alertMessage.textContent = 'Terjadi kesalahan: ' + error.message;
+                    alertMessage.className = 'alert alert-danger';
+                });
+            });
+
+            // Download button
+            document.getElementById('downloadButton').addEventListener('click', function() {
+                if (!window.resultData) return;
+                
+                fetch('/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(window.resultData)
+                })
+                .then(response => response.blob())
+                .then(blob => {
+                    // Create download link
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'soal_output.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                })
+                .catch(error => {
+                    alert('Terjadi kesalahan saat mengunduh: ' + error.message);
+                });
+            });
+
+            // Function to render results
+            function renderResults(data) {
+                if (!data.soal || !Array.isArray(data.soal)) {
+                    console.error('Format data tidak valid');
+                    return;
+                }
+                
+                const questionsList = document.getElementById('questionsList');
+                questionsList.innerHTML = '';
+                
+                // Calculate taxonomy distribution
+                const taxonomyCounts = {
+                    'C1': 0, 'C2': 0, 'C3': 0, 'C4': 0, 'C5': 0, 'C6': 0
+                };
+                
+                data.soal.forEach(soal => {
+                    const taxonomy = soal.kategori_taksonomi || 'Unknown';
+                    if (taxonomyCounts[taxonomy] !== undefined) {
+                        taxonomyCounts[taxonomy]++;
+                    }
+                });
+                
+                const totalQuestions = data.soal.length;
+                
+                // Update progress bars
+                for (const [taxonomy, count] of Object.entries(taxonomyCounts)) {
+                    const percentage = (count / totalQuestions * 100).toFixed(0);
+                    const bar = document.getElementById(`${taxonomy.toLowerCase()}Bar`);
+                    if (bar) {
+                        bar.style.width = `${percentage}%`;
+                        bar.setAttribute('aria-valuenow', percentage);
+                        bar.textContent = `${taxonomy}: ${percentage}%`;
+                    }
+                }
+                
+                // Get taxonomy badge colors
+                const taxonomyColors = {
+                    'C1': 'bg-success',
+                    'C2': 'bg-info',
+                    'C3': 'bg-primary',
+                    'C4': 'bg-warning',
+                    'C5': 'bg-danger',
+                    'C6': 'bg-dark',
+                    'Unknown': 'bg-secondary'
+                };
+                
+                // Render each question
+                data.soal.forEach((soal, index) => {
+                    const taxonomyClass = taxonomyColors[soal.kategori_taksonomi] || 'bg-secondary';
+                    
+                    const questionCard = document.createElement('div');
+                    questionCard.className = 'question-card';
+                    
+                    // Create question header
+                    const questionHeader = document.createElement('div');
+                    questionHeader.className = 'd-flex justify-content-between align-items-start mb-3';
+                    
+                    const questionNumber = document.createElement('h5');
+                    questionNumber.textContent = `Soal ${index + 1}`;
+                    questionNumber.className = 'mb-0';
+                    
+                    const taxonomyBadge = document.createElement('span');
+                    taxonomyBadge.className = `taxonomy-badge ${taxonomyClass}`;
+                    taxonomyBadge.textContent = soal.kategori_taksonomi || 'Unknown';
+                    
+                    questionHeader.appendChild(questionNumber);
+                    questionHeader.appendChild(taxonomyBadge);
+                    
+                    // Create question content
+                    const questionText = document.createElement('p');
+                    questionText.className = 'mb-3';
+                    questionText.textContent = soal.pertanyaan;
+                    
+                    // Create choices
+                    const choicesList = document.createElement('div');
+                    choicesList.className = 'mb-3';
+                    
+                    soal.pilihan.forEach(pilihan => {
+                        const choiceItem = document.createElement('div');
+                        choiceItem.className = 'choice-item';
+                        
+                        // Highlight correct answer
+                        if (pilihan.startsWith(soal.jawaban_benar + '.') || pilihan.startsWith(soal.jawaban_benar + ' ')) {
+                            choiceItem.innerHTML = `<strong>${pilihan}</strong>`;
+                        } else {
+                            choiceItem.textContent = pilihan;
+                        }
+                        
+                        choicesList.appendChild(choiceItem);
+                    });
+                    
+                    // Create answer and explanation
+                    const correctAnswer = document.createElement('div');
+                    correctAnswer.className = 'correct-answer';
+                    correctAnswer.innerHTML = `<strong>Jawaban Benar: ${soal.jawaban_benar}</strong>`;
+                    
+                    const explanation = document.createElement('div');
+                    explanation.className = 'explanation-section';
+                    explanation.innerHTML = `<strong>Penjelasan:</strong> ${soal.penjelasan}`;
+                    
+                    // Assemble question card
+                    questionCard.appendChild(questionHeader);
+                    questionCard.appendChild(questionText);
+                    questionCard.appendChild(choicesList);
+                    questionCard.appendChild(correctAnswer);
+                    questionCard.appendChild(explanation);
+                    
+                    questionsList.appendChild(questionCard);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
